@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""Module to calculate the sum of i squared"""
+"""Module to calculate the sum total"""
 
 
 def summation_i_squared(n):
-    """Calculates the sum of i^2 from 1 to n using the square pyramidal formula
+    """Calculates sum of i squared from 1 to n
     Args:
-        n: The stopping condition
+        n: stop condition
     Returns:
-        The integer value of the sum, or None if n is invalid
+        integer value or None
     """
     if not isinstance(n, int) or n < 1:
         return None
-    # Formula for sum of squares: n(n+1)(2n+1) / 6
-    return (n * (n + 1) * (2 * n + 1)) // 6
+    res = (n * (n + 1) * (2 * n + 1)) // 6
+    return res
