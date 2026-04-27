@@ -11,11 +11,11 @@ def mat_mul(mat1, mat2):
     # Initialize new matrix with dimensions: rows of mat1 x cols of mat2
     result = []
     for i in range(len(mat1)):
-        row = []
+        new_row = []
         for j in range(len(mat2[0])):
-            # Calculate dot product of mat1 row i and mat2 col j
-            dot_product = sum(mat1[i][k] * mat2[k][j] for k in range(len(mat2)))
-            row.append(dot_product)
-        result.append(row)
+            # Calculate dot product
+            dot_prod = sum(mat1[i][k] * mat2[k][j] for k in range(len(mat2)))
+            new_row.append(dot_prod)
+        result.append(new_row)
 
     return result
