@@ -7,7 +7,7 @@ import numpy as np
 
 def posterior(x, n, P, Pr):
     """
-    Calculates the posterior probability for various hypothetical probabilities.
+    Calculates the posterior probability for various hypothetical probs.
     """
     if not isinstance(n, int) or n <= 0:
         raise ValueError("n must be a positive integer")
@@ -19,7 +19,8 @@ def posterior(x, n, P, Pr):
     if not isinstance(P, np.ndarray) or P.ndim != 1:
         raise TypeError("P must be a 1D numpy.ndarray")
     if not isinstance(Pr, np.ndarray) or Pr.shape != P.shape:
-        raise TypeError("Pr must be a numpy.ndarray with the same shape as P")
+        err = "Pr must be a numpy.ndarray with the same shape as P"
+        raise TypeError(err)
     if np.any((P < 0) | (P > 1)):
         raise ValueError("All values in P must be in the range [0, 1]")
     if np.any((Pr < 0) | (Pr > 1)):
