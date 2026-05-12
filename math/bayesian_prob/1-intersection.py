@@ -7,7 +7,7 @@ import numpy as np
 
 def intersection(x, n, P, Pr):
     """
-    Calculates the intersection of obtaining x and n with each probability in P.
+    Calculates the intersection of x and n with each probability in P.
     """
     if not isinstance(n, int) or n <= 0:
         raise ValueError("n must be a positive integer")
