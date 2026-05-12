@@ -58,8 +58,7 @@ class Normal:
         """
         pi = 3.1415926536
         value = (x - self.mean) / (self.stddev * (2 ** 0.5))
-        
-        # Approximation of the error function (erf)
+
         erf = (2 / (pi ** 0.5)) * (
             value - (value ** 3) / 3 + (value ** 5) / 10 -
             (value ** 7) / 42 + (value ** 9) / 216
