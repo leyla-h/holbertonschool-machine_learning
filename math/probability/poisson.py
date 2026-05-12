@@ -28,6 +28,6 @@ class Poisson:
                 raise TypeError("data must be a list")
             if len(data) < 2:
                 raise ValueError("data must contain multiple values")
-            
+
             # Calculate lambtha (mean of the data)
             self.lambtha = float(sum(data) / len(data))
