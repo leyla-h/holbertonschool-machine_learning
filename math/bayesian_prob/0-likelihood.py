@@ -12,7 +12,8 @@ def likelihood(x, n, P):
     if not isinstance(n, int) or n <= 0:
         raise ValueError("n must be a positive integer")
     if not isinstance(x, int) or x < 0:
-        raise ValueError("x must be an integer that is greater than or equal to 0")
+        err = "x must be an integer that is greater than or equal to 0"
+        raise ValueError(err)
     if x > n:
         raise ValueError("x cannot be greater than n")
     if not isinstance(P, np.ndarray) or len(P.shape) != 1:
@@ -27,7 +28,6 @@ def likelihood(x, n, P):
     combination = fact_n / (fact_x * fact_nx)
 
     # Binomial likelihood: (nCr) * (P^x) * ((1-P)^(n-x))
-    # This operation is vectorized over the numpy array P
     l_hood = combination * (P ** x) * ((1 - P) ** (n - x))
 
     return l_hood
