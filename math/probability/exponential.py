@@ -46,6 +46,7 @@ class Exponential:
             return 0
 
         e = 2.7182818285
+        # Formula: 1 - e^(-λ * x)
         cdf_val = 1 - (e ** (-self.lambtha * x))
 
         return cdf_val
