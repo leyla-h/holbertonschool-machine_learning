@@ -26,16 +26,37 @@ class Binomial:
             if len(data) < 2:
                 raise ValueError("data must contain multiple values")
 
-            # Calculate sample mean and variance
             mean = sum(data) / len(data)
             variance = sum((x - mean) ** 2 for x in data) / len(data)
 
-            # Estimate p and n
-            # Variance = n * p * (1 - p); Mean = n * p
-            # p = 1 - (variance / mean)
             p_est = 1 - (variance / mean)
             n_est = round(mean / p_est)
 
-            # Final values based on rounded n
             self.n = int(n_est)
             self.p = float(mean / n_est)
+
+    def pmf(self, k):
+        """
+        Calculates the value of the PMF for a given number of "successes".
+        """
+        k = int(k)
+        if k < 0 or k > self.n:
+            return 0
+
+        def factorial(n):
+            """Helper to calculate factorial"""
+            res = 1
+            for i in range(1, n + 1):
+                res *= i
+            return res
+
+        # nCr = n! / (k! * (n-k)!)
+        n_fact = factorial(self.n)
+        k_fact = factorial(k)
+        nk_fact = factorial(self.n - k)
+        combination = n_fact / (k_fact * nk_fact)
+
+        # PMF = nCr * (p^k) * ((1-p)^(n-k))
+        pmf_val = combination * (self.p ** k) * ((1 - self.p) ** (self.n - k))
+
+        return pmf_val
