@@ -33,5 +33,6 @@ class MultiNormal:
         # Center the data by subtracting the mean vector
         data_centered = data - self.mean
 
-        # Covariance formula for (d, n) shape: (data_centered * data_centered^T) / (n - 1)
+        # Covariance formula for (d, n) shape:
+        # (data_centered * data_centered^T) / (n - 1)
         self.cov = np.matmul(data_centered, data_centered.T) / (n - 1)
