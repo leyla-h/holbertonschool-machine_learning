@@ -36,3 +36,38 @@ class MultiNormal:
         # Covariance formula for (d, n) shape:
         # (data_centered * data_centered^T) / (n - 1)
         self.cov = np.matmul(data_centered, data_centered.T) / (n - 1)
+
+    def pdf(self, x):
+        """
+        Calculates the PDF at a specific data point.
+
+        Parameters:
+        x (numpy.ndarray): shape (d, 1) containing the data point
+
+        Returns:
+        float: the value of the PDF
+        """
+        if not isinstance(x, np.ndarray):
+            raise TypeError("x must be a numpy.ndarray")
+
+        d = self.mean.shape[0]
+
+        if len(x.shape) != 2 or x.shape[0] != d or x.shape[1] != 1:
+            raise ValueError("x must have the shape ({}, 1)".format(d))
+
+        det = np.linalg.det(self.cov)
+        inv = np.linalg.inv(self.cov)
+
+        # Vector difference between target point and distribution mean
+        diff = x - self.mean
+
+        # Compute exponent component: -0.5 * (x - mu)^T * Sigma^-1 * (x - mu)
+        exponent = -0.5 * np.matmul(np.matmul(diff.T, inv), diff)
+
+        # Compute normalization factor: 1 / sqrt((2 * pi)^d * det(Sigma))
+        norm_factor = 1.0 / np.sqrt(((2 * np.pi) ** d) * det)
+
+        # The result of exponentiation yields a 1x1 matrix; extract scalar
+        pdf_val = norm_factor * np.exp(exponent[0, 0])
+
+        return pdf_val
