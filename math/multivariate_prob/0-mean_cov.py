@@ -33,7 +33,7 @@ def mean_cov(X):
     # Shift the data by subtracting the mean
     X_centered = X - mean
 
-    # Calculate the covariance matrix using the formula: (X_centered^T * X_centered) / (n - 1)
+    # Calculate covariance using: (X_centered^T * X_centered) / (n - 1)
     cov = np.matmul(X_centered.T, X_centered) / (n - 1)
 
     return mean, cov
