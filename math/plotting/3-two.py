@@ -18,8 +18,8 @@ def two():
     y2 = np.exp((r / t2) * x)
     plt.figure(figsize=(6.4, 4.8))
 
-    plt.plot(x, y1, '#F14223', linestyle='dashed', label='C-14')
-    plt.plot(x, y2, '#33811B', linestyle='solid', label='Ra-226')
+    plt.plot(x, y1, 'r--', label='C-14')
+    plt.plot(x, y2, 'g-', label='Ra-226')
 
     plt.xlim(0, 20000)
     plt.ylim(0, 1)
