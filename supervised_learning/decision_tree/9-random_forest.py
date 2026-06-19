@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Random Forest module using an ensemble of Decision Trees."""
-Decision_Tree = __import__('8-build_decision_tree').Decision_Tree
 import numpy as np
+Decision_Tree = __import__('8-build_decision_tree').Decision_Tree
 
 
 class Random_Forest():
@@ -22,6 +22,7 @@ class Random_Forest():
         all_preds = np.array([
             tree_predict(explanatory) for tree_predict in self.numpy_preds
         ])
+
         def mode_along_axis(votes):
             values, counts = np.unique(votes, return_counts=True)
             return values[np.argmax(counts)]
