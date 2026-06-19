@@ -1,46 +1,47 @@
 #!/usr/bin/env python3
-"""This module defines a Random Forest class built from Decision Trees."""
+"""Random Forest module using an ensemble of Decision Trees."""
 Decision_Tree = __import__('8-build_decision_tree').Decision_Tree
 import numpy as np
 
 
 class Random_Forest():
-    """Represents a random forest of decision trees."""
+    """Represents a random forest classifier."""
+
     def __init__(self, n_trees=100, max_depth=10, min_pop=1, seed=0):
+        """Initialize a Random_Forest."""
         self.numpy_predicts = []
-        self.target         = None
-        self.numpy_preds    = None
-        self.n_trees        = n_trees
-        self.max_depth      = max_depth
-        self.min_pop        = min_pop
-        self.seed           = seed
+        self.target = None
+        self.numpy_preds = None
+        self.n_trees = n_trees
+        self.max_depth = max_depth
+        self.min_pop = min_pop
+        self.seed = seed
 
     def predict(self, explanatory):
-        # Initialize an empty list to store predictions from individual trees
-        predictions = []
-
-        # Generate predictions for each tree in the forest
-        for predict_fn in self.numpy_preds:
-            predictions.append(predict_fn(explanatory))
-        predictions = np.array(predictions)  # shape: (n_trees, n_samples)
-
-        # Calculate the mode (most frequent) prediction for each example
-        modes = []
-        for col in predictions.T:
-            vals, counts = np.unique(col, return_counts=True)
-            modes.append(vals[np.argmax(counts)])
-        return np.array(modes)
+        """Return majority-vote predictions across all trees."""
+        all_preds = np.array([
+            tree_predict(explanatory) for tree_predict in self.numpy_preds
+        ])
+        def mode_along_axis(votes):
+            values, counts = np.unique(votes, return_counts=True)
+            return values[np.argmax(counts)]
+        return np.apply_along_axis(mode_along_axis, 0, all_preds)
 
     def fit(self, explanatory, target, n_trees=100, verbose=0):
-        self.target      = target
+        """Train the random forest on the given data."""
+        self.target = target
         self.explanatory = explanatory
         self.numpy_preds = []
-        depths     = []
-        nodes      = []
-        leaves     = []
+        depths = []
+        nodes = []
+        leaves = []
         accuracies = []
         for i in range(n_trees):
-            T = Decision_Tree(max_depth=self.max_depth, min_pop=self.min_pop, seed=self.seed + i)
+            T = Decision_Tree(
+                max_depth=self.max_depth,
+                min_pop=self.min_pop,
+                seed=self.seed + i
+            )
             T.fit(explanatory, target)
             self.numpy_preds.append(T.predict)
             depths.append(T.depth())
@@ -48,12 +49,16 @@ class Random_Forest():
             leaves.append(T.count_nodes(only_leaves=True))
             accuracies.append(T.accuracy(T.explanatory, T.target))
         if verbose == 1:
+            acc = self.accuracy(self.explanatory, self.target)
             print(f"""  Training finished.
-    - Mean depth                     : { np.array(depths).mean()      }
-    - Mean number of nodes           : { np.array(nodes).mean()       }
-    - Mean number of leaves          : { np.array(leaves).mean()      }
-    - Mean accuracy on training data : { np.array(accuracies).mean()  }
-    - Accuracy of the forest on td   : {self.accuracy(self.explanatory, self.target)}""")
+    - Mean depth                     : {np.array(depths).mean()}
+    - Mean number of nodes           : {np.array(nodes).mean()}
+    - Mean number of leaves          : {np.array(leaves).mean()}
+    - Mean accuracy on training data : {np.array(accuracies).mean()}
+    - Accuracy of the forest on td   : {acc}""")
 
     def accuracy(self, test_explanatory, test_target):
-        return np.sum(np.equal(self.predict(test_explanatory), test_target)) / test_target.size
+        """Return the accuracy of the forest on the given data."""
+        return np.sum(
+            np.equal(self.predict(test_explanatory), test_target)
+        ) / test_target.size
