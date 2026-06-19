@@ -268,11 +268,12 @@ class Decision_Tree:
         self.update_predict()
 
         if verbose == 1:
+            acc = self.accuracy(self.explanatory, self.target)
             print(f"""  Training finished.
     - Depth                     : {self.depth()}
     - Number of nodes           : {self.count_nodes()}
     - Number of leaves          : {self.count_nodes(only_leaves=True)}
-    - Accuracy on training data : {self.accuracy(self.explanatory, self.target)}""")
+    - Accuracy on training data : {acc}""")
 
     def fit_node(self, node):
         """Recursively fit a node by splitting into children."""
