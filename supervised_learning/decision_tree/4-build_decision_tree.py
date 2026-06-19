@@ -18,7 +18,8 @@ class Node:
 
     def __str__(self):
         node_type = "root" if self.is_root else "-> node"
-        result = f"{node_type} [feature={self.feature}, threshold={self.threshold}]\n"
+        result = "{} [feature={}, threshold={}]\n".format(
+            node_type, self.feature, self.threshold)
         if self.left_child:
             result += self.left_child_add_prefix(str(self.left_child))
         if self.right_child:
@@ -40,13 +41,27 @@ class Node:
         return new_text
 
     def max_depth_below(self):
-        left = self.left_child.max_depth_below() if self.left_child else self.depth
-        right = self.right_child.max_depth_below() if self.right_child else self.depth
+        if self.left_child:
+            left = self.left_child.max_depth_below()
+        else:
+            left = self.depth
+        if self.right_child:
+            right = self.right_child.max_depth_below()
+        else:
+            right = self.depth
         return max(left, right)
 
     def count_nodes_below(self, only_leaves=False):
-        left = self.left_child.count_nodes_below(only_leaves=only_leaves) if self.left_child else 0
-        right = self.right_child.count_nodes_below(only_leaves=only_leaves) if self.right_child else 0
+        if self.left_child:
+            left = self.left_child.count_nodes_below(
+                only_leaves=only_leaves)
+        else:
+            left = 0
+        if self.right_child:
+            right = self.right_child.count_nodes_below(
+                only_leaves=only_leaves)
+        else:
+            right = 0
         if only_leaves:
             return left + right
         return 1 + left + right
@@ -68,8 +83,8 @@ class Node:
             child.upper = self.upper.copy()
             child.lower = self.lower.copy()
 
-        # left child  -> "greater than" threshold -> lower bound set to threshold
-        # right child -> "less or equal" threshold -> upper bound set to threshold
+        # left child  -> "greater than" threshold -> lower = threshold
+        # right child -> "less or equal" threshold -> upper = threshold
         self.left_child.lower[self.feature] = self.threshold
         self.right_child.upper[self.feature] = self.threshold
 
@@ -86,7 +101,7 @@ class Leaf:
         self.sub_population = None
 
     def __str__(self):
-        return f"-> leaf [value={self.value}]"
+        return "-> leaf [value={}]".format(self.value)
 
     def max_depth_below(self):
         return self.depth
