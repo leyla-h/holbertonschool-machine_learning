@@ -14,6 +14,7 @@ class Isolation_Random_Forest():
         self.numpy_preds = None
         self.n_trees = n_trees
         self.max_depth = max_depth
+        self.min_pop = min_pop
         self.seed = seed
 
     def predict(self, explanatory):
@@ -29,9 +30,11 @@ class Isolation_Random_Forest():
         nodes = []
         leaves = []
         for i in range(n_trees):
+            # Pass min_pop to the tree here
             T = Isolation_Random_Tree(
                 max_depth=self.max_depth, seed=self.seed + i
             )
+            T.min_pop = self.min_pop
             T.fit(explanatory)
             self.numpy_preds.append(T.predict)
             depths.append(T.depth())
