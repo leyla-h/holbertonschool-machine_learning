@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Module to create a confusion matrix
 """
