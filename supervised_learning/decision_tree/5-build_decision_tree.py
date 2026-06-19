@@ -39,9 +39,9 @@ class Node:
         self.right_child.update_bounds_below()
 
     def update_indicator(self):
-        """Updates the indicator function for the node."""
-        for child in [self.left_child, self.right_child]:
-            child.update_indicator()
+        """Recursively updates the indicator function for all children."""
+        self.left_child.update_indicator()
+        self.right_child.update_indicator()
 
 
 class Leaf:
@@ -54,29 +54,27 @@ class Leaf:
         self.is_leaf = True
 
     def get_leaves_below(self):
-        """Returns the leaf itself in a list."""
+        """Returns the list of the leaf itself."""
         return [self]
 
     def update_bounds_below(self):
-        """Placeholder for leaf node bounds update."""
+        """Leaf nodes do not have children to update."""
         pass
 
     def update_indicator(self):
         """Computes the indicator function for this leaf."""
         def is_large_enough(x):
-            # i-th element True if all features > lower bounds
-            res = [np.greater(x[:, key], self.lower[key])
-                   for key in self.lower.keys()]
-            return np.all(np.array(res), axis=0)
+            """Returns True if features > lower bounds."""
+            res = [np.greater(x[:, key], val) for key, val in self.lower.items()]
+            return np.all(res, axis=0)
 
         def is_small_enough(x):
-            # i-th element True if all features <= upper bounds
-            res = [np.less_equal(x[:, key], self.upper[key])
-                   for key in self.upper.keys()]
-            return np.all(np.array(res), axis=0)
+            """Returns True if features <= upper bounds."""
+            res = [np.less_equal(x[:, key], val) for key, val in self.upper.items()]
+            return np.all(res, axis=0)
 
         self.indicator = lambda x: np.all(
-            np.array([is_large_enough(x), is_small_enough(x)]), axis=0
+            [is_large_enough(x), is_small_enough(x)], axis=0
         )
 
 
@@ -94,3 +92,7 @@ class Decision_Tree:
     def update_bounds(self):
         """Updates the bounds for all nodes in the tree."""
         self.root.update_bounds_below()
+
+    def update_indicator(self):
+        """Updates the indicator functions for all leaves."""
+        self.root.update_indicator()
