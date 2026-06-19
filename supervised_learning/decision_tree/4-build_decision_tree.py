@@ -28,20 +28,19 @@ class Node:
             self.upper = {0: np.inf}
             self.lower = {0: -np.inf}
 
-        # Initialize children bounds from parent
-        for child in [self.left_child, self.right_child]:
-            child.upper = self.upper.copy()
-            child.lower = self.lower.copy()
-
-        # Update specific feature bounds
-        # Left child: upper bound changes
+        # Left child: feature <= threshold (updates upper bound)
+        self.left_child.upper = self.upper.copy()
+        self.left_child.lower = self.lower.copy()
         self.left_child.upper[self.feature] = self.threshold
-        # Right child: lower bound changes
+
+        # Right child: feature > threshold (updates lower bound)
+        self.right_child.upper = self.upper.copy()
+        self.right_child.lower = self.lower.copy()
         self.right_child.lower[self.feature] = self.threshold
 
-        # Recursively update
-        for child in [self.left_child, self.right_child]:
-            child.update_bounds_below()
+        # Recurse
+        self.left_child.update_bounds_below()
+        self.right_child.update_bounds_below()
 
 
 class Leaf:
