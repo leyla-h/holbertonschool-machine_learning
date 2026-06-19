@@ -18,19 +18,18 @@ class Node:
         self.is_leaf = False
 
     def pred(self, x):
-        """Returns the leaf value for a single sample x via tree traversal."""
+        """Returns the leaf value for a single sample x via traversal."""
         if x[self.feature] > self.threshold:
             return self.left_child.pred(x)
-        else:
-            return self.right_child.pred(x)
+        return self.right_child.pred(x)
 
     def get_leaves_below(self):
-        """Returns the list of all leaves below this node."""
+        """Returns list of all leaves below this node."""
         return self.left_child.get_leaves_below() + \
             self.right_child.get_leaves_below()
 
     def update_bounds_below(self):
-        """Recursively updates bounds."""
+        """Recursively updates bounds for children."""
         if self.is_root:
             self.upper = {0: np.inf}
             self.lower = {0: -np.inf}
@@ -43,14 +42,9 @@ class Node:
         self.right_child.update_bounds_below()
 
     def update_indicator(self):
-        """Recursively updates indicators."""
+        """Recursively updates indicators for children."""
         self.left_child.update_indicator()
         self.right_child.update_indicator()
-
-    def __str__(self):
-        """String representation of the tree."""
-        # Note: Ensure this matches your earlier requirement
-        return ""
 
 
 class Leaf:
@@ -69,6 +63,10 @@ class Leaf:
     def get_leaves_below(self):
         """Returns the leaf itself."""
         return [self]
+
+    def update_bounds_below(self):
+        """Pass as leaves have no children."""
+        pass
 
     def update_indicator(self):
         """Computes the indicator function for this leaf."""
@@ -91,32 +89,25 @@ class Decision_Tree:
         self.root = root
 
     def pred(self, x):
-        """Traverses the tree to predict for x."""
+        """Predicts value for single sample x."""
         return self.root.pred(x)
 
     def get_leaves(self):
-        """Returns the list of all leaves of the tree."""
+        """Returns all leaves in the tree."""
         return self.root.get_leaves_below()
 
     def update_bounds(self):
-        """Updates the bounds for all nodes."""
+        """Updates bounds for all nodes."""
         self.root.update_bounds_below()
 
     def update_predict(self):
-        """Updates indicators and sets up the vectorized predict function."""
+        """Computes efficient prediction function."""
         self.update_bounds()
         leaves = self.get_leaves()
         for leaf in leaves:
             leaf.update_indicator()
 
-        def predict(A):
-            """Vectorized prediction."""
-            # Matrix of shape (n_leaves, n_individuals)
-            indicators = np.array([leaf.indicator(A) for leaf in leaves])
-            # Array of values associated with each leaf
-            values = np.array([leaf.value for leaf in leaves])
-            # For each column (individual), find the index where indicator is True
-            leaf_indices = np.argmax(indicators, axis=0)
-            return values[leaf_indices]
-
-        self.predict = predict
+        # The efficient approach: sum of products (indicator * value)
+        self.predict = lambda A: sum(
+            leaf.indicator(A).astype(int) * leaf.value for leaf in leaves
+        )
