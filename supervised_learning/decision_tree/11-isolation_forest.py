@@ -1,110 +1,126 @@
 #!/usr/bin/env python3
-"""
-This module defines the Isolation_Random_Forest class, an ensemble of
-Isolation_Random_Tree instances used to score individuals of a
-dataset according to how easily they can be isolated, in order to
-detect outliers.
-"""
+"""This module defines an Isolation Random Tree class for outlier detection."""
 import numpy as np
-Isolation_Random_Tree = __import__('10-isolation_tree').Isolation_Random_Tree
+Node = __import__('8-build_decision_tree').Node
+Leaf = __import__('8-build_decision_tree').Leaf
 
 
-class Isolation_Random_Forest():
-    """
-    Represents an isolation random forest : an ensemble of isolation
-    random trees whose averaged predictions are used to detect the
-    outliers of a dataset.
-    """
+class Isolation_Random_Tree:
+    """Represents an isolation random tree structure."""
 
-    def __init__(self, n_trees=100, max_depth=10, min_pop=1, seed=0):
-        """
-        Initializes an Isolation_Random_Forest instance.
-
-        Args:
-            n_trees (int): the number of trees to grow in the forest.
-            max_depth (int): the maximum depth allowed for each tree.
-            min_pop (int): the minimum population required to split a
-                node further, for each tree.
-            seed (int): the seed used to initialize the random number
-                generator of the first tree (tree i uses seed + i).
-        """
-        self.numpy_predicts = []
-        self.target = None
-        self.numpy_preds = None
-        self.n_trees = n_trees
+    def __init__(self, max_depth=10, seed=0, root=None):
+        """Initializes the Isolation_Random_Tree instance."""
+        self.rng = np.random.default_rng(seed)
+        self.root = root if root else Node(is_root=True)
+        self.explanatory = None
         self.max_depth = max_depth
-        self.seed = seed
+        self.predict = None
+        self.min_pop = 1
 
-    def predict(self, explanatory):
+    def depth(self):
+        """Computes the maximum depth of the tree."""
+        def get_depth(node):
+            if node.is_leaf:
+                return node.depth
+            return max(get_depth(node.left_child),
+                       get_depth(node.right_child))
+        return get_depth(self.root)
+
+    def count_nodes(self, only_leaves=False):
+        """Counts the total nodes or leaves in the tree."""
+        def count(node):
+            if node.is_leaf:
+                return 1
+            res = count(node.left_child) + count(node.right_child)
+            return res if only_leaves else res + 1
+        return count(self.root)
+
+    def update_bounds(self):
+        """Updates the boundary constraints for all nodes."""
+        self.root.update_bounds_below()
+
+    def get_leaves(self):
+        """Returns all leaf nodes in the tree."""
+        return self.root.get_leaves_below()
+
+    def update_predict(self):
+        """Sets up the vectorized predict function for the tree."""
+        self.update_bounds()
+        leaves = self.get_leaves()
+        for leaf in leaves:
+            leaf.update_indicator()
+        self.predict = lambda A: np.array([leaf.value for leaf in leaves])[
+            np.argmax([leaf.indicator(A) for leaf in leaves], axis=0)
+        ]
+
+    def random_split_criterion(self, node):
+        """Randomly selects a feature and threshold for splitting.
+
+        Keeps drawing a new random feature until one that actually
+        varies within the node's sub_population is found, so that the
+        resulting split is guaranteed to reduce the population (rather
+        than silently failing to split when the chosen feature happens
+        to be constant, which is common with duplicate-heavy
+        datasets).
         """
-        Predicts the mean isolation depth of each individual in
-        explanatory, averaged over every tree of the forest.
+        diff = 0
+        while diff == 0:
+            feat = self.rng.integers(0, self.explanatory.shape[1])
+            vals = self.explanatory[node.sub_population, feat]
+            feat_min = np.min(vals)
+            feat_max = np.max(vals)
+            diff = feat_max - feat_min
+        x = self.rng.uniform()
+        threshold = (1 - x) * feat_min + x * feat_max
+        return feat, threshold
 
-        Args:
-            explanatory (numpy.ndarray): the explanatory features of
-                the individuals to score.
+    def get_leaf_child(self, node, sub_population):
+        """Creates a leaf child returning the depth as its value."""
+        leaf_child = Leaf(node.depth + 1)
+        leaf_child.depth = node.depth + 1
+        leaf_child.sub_population = sub_population
+        return leaf_child
 
-        Returns:
-            numpy.ndarray: the mean depth of each individual, across
-                all the trees of the forest.
-        """
-        predictions = np.array([f(explanatory) for f in self.numpy_preds])
-        return predictions.mean(axis=0)
+    def get_node_child(self, node, sub_population):
+        """Creates an internal node child."""
+        n = Node()
+        n.depth = node.depth + 1
+        n.sub_population = sub_population
+        return n
 
-    def fit(self, explanatory, n_trees=100, verbose=0):
-        """
-        Builds the forest by growing n_trees isolation random trees
-        on explanatory.
+    def fit_node(self, node):
+        """Recursively builds the tree by splitting nodes."""
+        node.feature, node.threshold = self.random_split_criterion(node)
+        feat_vals = self.explanatory[:, node.feature]
 
-        Args:
-            explanatory (numpy.ndarray): the explanatory features of
-                the training individuals.
-            n_trees (int): the number of trees to grow.
-            verbose (int): if set to 1, prints a short training
-                summary once training is complete.
-        """
+        left_pop = (feat_vals > node.threshold) & node.sub_population
+        right_pop = (feat_vals <= node.threshold) & node.sub_population
+
+        is_left_leaf = (node.depth + 1 == self.max_depth) or \
+                       (np.sum(left_pop) <= self.min_pop)
+        if is_left_leaf:
+            node.left_child = self.get_leaf_child(node, left_pop)
+        else:
+            node.left_child = self.get_node_child(node, left_pop)
+            self.fit_node(node.left_child)
+
+        is_right_leaf = (node.depth + 1 == self.max_depth) or \
+                        (np.sum(right_pop) <= self.min_pop)
+        if is_right_leaf:
+            node.right_child = self.get_leaf_child(node, right_pop)
+        else:
+            node.right_child = self.get_node_child(node, right_pop)
+            self.fit_node(node.right_child)
+
+    def fit(self, explanatory, verbose=0):
+        """Trains the isolation tree on the explanatory dataset."""
         self.explanatory = explanatory
-        self.numpy_preds = []
-        depths = []
-        nodes = []
-        leaves = []
-        for i in range(n_trees):
-            T = Isolation_Random_Tree(max_depth=self.max_depth,
-                                      seed=self.seed + i)
-            T.fit(explanatory)
-            self.numpy_preds.append(T.predict)
-            depths.append(T.depth())
-            nodes.append(T.count_nodes())
-            leaves.append(T.count_nodes(only_leaves=True))
+        self.root.sub_population = np.ones(explanatory.shape[0], dtype='bool')
+        self.fit_node(self.root)
+        self.update_predict()
         if verbose == 1:
-            print(f"""  Training finished.
-    - Mean depth                     : { np.array(depths).mean()      }
-    - Mean number of nodes           : { np.array(nodes).mean()       }
-    - Mean number of leaves          : { np.array(leaves).mean()      }""")
-
-    def suspects(self, explanatory, n_suspects):
-        """
-        Returns the n_suspects rows in explanatory that have the
-        smallest mean depth.
-
-        Individuals that are isolated in fewer splits, on average,
-        across the forest are the easiest to separate from the rest
-        of the population and are therefore considered the most
-        likely outliers.
-
-        Args:
-            explanatory (numpy.ndarray): the explanatory features of
-                the individuals to inspect.
-            n_suspects (int): the number of suspects to return.
-
-        Returns:
-            tuple: (suspects, depths) where suspects is the
-                numpy.ndarray containing the n_suspects rows of
-                explanatory with the smallest mean depth, and depths
-                is the numpy.ndarray of their corresponding mean
-                depths, both ordered from the smallest depth to the
-                largest.
-        """
-        depths = self.predict(explanatory)
-        indices = np.argsort(depths)[:n_suspects]
-        return explanatory[indices], depths[indices]
+            print(f"  Training finished.\n"
+                  f"    - Depth                     : {self.depth()}\n"
+                  f"    - Number of nodes           : {self.count_nodes()}\n"
+                  f"    - Number of leaves          : "
+                  f"{self.count_nodes(only_leaves=True)}")
