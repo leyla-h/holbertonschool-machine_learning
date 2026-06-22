@@ -1,32 +1,32 @@
 #!/usr/bin/env python3
-"""
-This module defines the Isolation_Random_Forest class, an ensemble of
-Isolation_Random_Tree instances used to score individuals of a
-dataset according to how easily they can be isolated, in order to
-detect outliers.
-"""
+"""Module implementing the Isolation Random Forest for anomaly detection."""
+
 import numpy as np
 Isolation_Random_Tree = __import__('10-isolation_tree').Isolation_Random_Tree
 
 
 class Isolation_Random_Forest():
-    """
-    Represents an isolation random forest : an ensemble of isolation
-    random trees whose averaged predictions are used to detect the
-    outliers of a dataset.
+    """Isolation Random Forest for detecting outliers/anomalies.
+
+    This class builds an ensemble of Isolation Random Trees and uses
+    the mean depth of each data point across all trees to identify
+    suspects (anomalies): points with the smallest mean depth are
+    isolated most easily, indicating they are outliers.
     """
 
     def __init__(self, n_trees=100, max_depth=10, min_pop=1, seed=0):
-        """
-        Initializes an Isolation_Random_Forest instance.
+        """Initialize the Isolation Random Forest.
 
-        Args:
-            n_trees (int): the number of trees to grow in the forest.
-            max_depth (int): the maximum depth allowed for each tree.
-            min_pop (int): the minimum population required to split a
-                node further, for each tree.
-            seed (int): the seed used to initialize the random number
-                generator of the first tree (tree i uses seed + i).
+        Parameters
+        ----------
+        n_trees : int
+            Number of trees in the forest.
+        max_depth : int
+            Maximum depth allowed for each tree.
+        min_pop : int
+            Minimum population required to split a node.
+        seed : int
+            Random seed for reproducibility.
         """
         self.numpy_predicts = []
         self.target = None
@@ -36,32 +36,32 @@ class Isolation_Random_Forest():
         self.seed = seed
 
     def predict(self, explanatory):
-        """
-        Predicts the mean isolation depth of each individual in
-        explanatory, averaged over every tree of the forest.
+        """Predict the mean depth for each individual in explanatory.
 
-        Args:
-            explanatory (numpy.ndarray): the explanatory features of
-                the individuals to score.
+        Parameters
+        ----------
+        explanatory : np.ndarray
+            Array of shape (n_samples, n_features) with input data.
 
-        Returns:
-            numpy.ndarray: the mean depth of each individual, across
-                all the trees of the forest.
+        Returns
+        -------
+        np.ndarray
+            Mean depth across all trees for each sample.
         """
         predictions = np.array([f(explanatory) for f in self.numpy_preds])
         return predictions.mean(axis=0)
 
     def fit(self, explanatory, n_trees=100, verbose=0):
-        """
-        Builds the forest by growing n_trees isolation random trees
-        on explanatory.
+        """Fit the Isolation Random Forest on the given data.
 
-        Args:
-            explanatory (numpy.ndarray): the explanatory features of
-                the training individuals.
-            n_trees (int): the number of trees to grow.
-            verbose (int): if set to 1, prints a short training
-                summary once training is complete.
+        Parameters
+        ----------
+        explanatory : np.ndarray
+            Array of shape (n_samples, n_features) with training data.
+        n_trees : int
+            Number of trees to build.
+        verbose : int
+            If 1, prints training summary statistics.
         """
         self.explanatory = explanatory
         self.numpy_preds = []
@@ -69,8 +69,9 @@ class Isolation_Random_Forest():
         nodes = []
         leaves = []
         for i in range(n_trees):
-            T = Isolation_Random_Tree(max_depth=self.max_depth,
-                                      seed=self.seed + i)
+            T = Isolation_Random_Tree(
+                max_depth=self.max_depth, seed=self.seed + i
+            )
             T.fit(explanatory)
             self.numpy_preds.append(T.predict)
             depths.append(T.depth())
@@ -78,32 +79,29 @@ class Isolation_Random_Forest():
             leaves.append(T.count_nodes(only_leaves=True))
         if verbose == 1:
             print(f"""  Training finished.
-    - Mean depth                     : { np.array(depths).mean()      }
-    - Mean number of nodes           : { np.array(nodes).mean()       }
-    - Mean number of leaves          : { np.array(leaves).mean()      }""")
+    - Mean depth                     : {np.array(depths).mean()}
+    - Mean number of nodes           : {np.array(nodes).mean()}
+    - Mean number of leaves          : {np.array(leaves).mean()}""")
 
     def suspects(self, explanatory, n_suspects):
-        """
-        Returns the n_suspects rows in explanatory that have the
-        smallest mean depth.
+        """Return the n_suspects rows with the smallest mean depth.
 
-        Individuals that are isolated in fewer splits, on average,
-        across the forest are the easiest to separate from the rest
-        of the population and are therefore considered the most
-        likely outliers.
+        Points that are isolated with the fewest splits (smallest mean
+        depth) are considered the most anomalous/suspicious.
 
-        Args:
-            explanatory (numpy.ndarray): the explanatory features of
-                the individuals to inspect.
-            n_suspects (int): the number of suspects to return.
+        Parameters
+        ----------
+        explanatory : np.ndarray
+            Array of shape (n_samples, n_features) with input data.
+        n_suspects : int
+            Number of suspects (anomalies) to return.
 
-        Returns:
-            tuple: (suspects, depths) where suspects is the
-                numpy.ndarray containing the n_suspects rows of
-                explanatory with the smallest mean depth, and depths
-                is the numpy.ndarray of their corresponding mean
-                depths, both ordered from the smallest depth to the
-                largest.
+        Returns
+        -------
+        tuple
+            A tuple (suspects, depths) where suspects is an array of
+            shape (n_suspects, n_features) and depths is an array of
+            the corresponding mean depths.
         """
         depths = self.predict(explanatory)
         indices = np.argsort(depths)[:n_suspects]
