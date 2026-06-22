@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Module implementing the Isolation Random Forest for anomaly detection."""
-
 import numpy as np
+
 Isolation_Random_Tree = __import__('10-isolation_tree').Isolation_Random_Tree
 
 
@@ -28,11 +28,14 @@ class Isolation_Random_Forest():
         seed : int
             Random seed for reproducibility.
         """
-        self.numpy_predicts = []
-        self.target = None
+        # FIX 1: removed the stale `self.numpy_predicts = []` attribute that
+        #         was never used anywhere (the real list is self.numpy_preds).
         self.numpy_preds = None
+        self.target = None
         self.n_trees = n_trees
         self.max_depth = max_depth
+        # FIX 2: actually store min_pop so it can be forwarded to each tree.
+        self.min_pop = min_pop
         self.seed = seed
 
     def predict(self, explanatory):
@@ -68,7 +71,10 @@ class Isolation_Random_Forest():
         leaves = []
         for i in range(self.n_trees):
             T = Isolation_Random_Tree(
-                max_depth=self.max_depth, seed=self.seed + i
+                max_depth=self.max_depth,
+                seed=self.seed + i,
+                # FIX 3: forward min_pop to every tree (was silently ignored).
+                min_pop=self.min_pop,
             )
             T.fit(explanatory)
             self.numpy_preds.append(T.predict)
