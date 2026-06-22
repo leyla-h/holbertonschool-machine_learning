@@ -34,7 +34,7 @@ class Isolation_Random_Forest():
         self.target = None
         self.n_trees = n_trees
         self.max_depth = max_depth
-        # FIX 2: actually store min_pop so it can be forwarded to each tree.
+        # FIX 2: store min_pop as a forest attribute (used internally only).
         self.min_pop = min_pop
         self.seed = seed
 
@@ -73,8 +73,8 @@ class Isolation_Random_Forest():
             T = Isolation_Random_Tree(
                 max_depth=self.max_depth,
                 seed=self.seed + i,
-                # FIX 3: forward min_pop to every tree (was silently ignored).
-                min_pop=self.min_pop,
+                # min_pop belongs to the forest only; Isolation_Random_Tree
+                # does not expose that parameter.
             )
             T.fit(explanatory)
             self.numpy_preds.append(T.predict)
