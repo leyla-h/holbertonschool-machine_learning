@@ -51,15 +51,13 @@ class Isolation_Random_Forest():
         predictions = np.array([f(explanatory) for f in self.numpy_preds])
         return predictions.mean(axis=0)
 
-    def fit(self, explanatory, n_trees=100, verbose=0):
+    def fit(self, explanatory, verbose=0):
         """Fit the Isolation Random Forest on the given data.
 
         Parameters
         ----------
         explanatory : np.ndarray
             Array of shape (n_samples, n_features) with training data.
-        n_trees : int
-            Number of trees to build.
         verbose : int
             If 1, prints training summary statistics.
         """
@@ -68,7 +66,7 @@ class Isolation_Random_Forest():
         depths = []
         nodes = []
         leaves = []
-        for i in range(n_trees):
+        for i in range(self.n_trees):
             T = Isolation_Random_Tree(
                 max_depth=self.max_depth, seed=self.seed + i
             )
