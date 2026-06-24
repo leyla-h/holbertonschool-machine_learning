@@ -99,8 +99,10 @@ class Isolation_Random_Tree:
 
     def fit(self, explanatory, verbose=0):
         """Trains the isolation tree on the explanatory dataset."""
-        self.explanatory = explanatory
-        self.root.sub_population = np.ones(explanatory.shape[0], dtype='bool')
+        n_samples = min(256, explanatory.shape[0])
+        indices = self.rng.choice(explanatory.shape[0], size=n_samples, replace=False)
+        self.explanatory = explanatory[indices]
+        self.root.sub_population = np.ones(self.explanatory.shape[0], dtype='bool')
         self.fit_node(self.root)
         self.update_predict()
         if verbose == 1:
