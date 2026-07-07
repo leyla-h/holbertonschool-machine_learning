@@ -19,7 +19,8 @@ def train_model(network, data, labels, batch_size, epochs,
     batch_size: the size of the batch used for mini-batch gradient descent
     epochs: the number of passes through data
     validation_data: data to validate the model with
-    early_stopping: boolean that indicates whether early stopping should be used
+    early_stopping: boolean that indicates whether early stopping should be
+        used
     patience: the patience used for early stopping
     learning_rate_decay: boolean that indicates whether LR decay should be used
     alpha: initial learning rate
