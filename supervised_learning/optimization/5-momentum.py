@@ -18,8 +18,10 @@ def update_variables_momentum(alpha, beta1, var, grad, v):
     Returns:
         The updated variable and the new moment, respectively.
     """
+    # Calculate the new velocity (first moment)
     v_new = beta1 * v + (1 - beta1) * grad
-    
+
+    # Update the variable
     var_new = var - alpha * v_new
-    
+
     return var_new, v_new
