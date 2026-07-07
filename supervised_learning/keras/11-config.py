@@ -33,6 +33,6 @@ def load_config(filename):
     """
     with open(filename, 'r') as f:
         model_json = f.read()
-    
+
     network = K.models.model_from_json(model_json)
     return network
