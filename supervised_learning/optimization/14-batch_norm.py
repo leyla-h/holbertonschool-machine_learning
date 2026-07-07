@@ -8,31 +8,25 @@ import tensorflow as tf
 def create_batch_norm_layer(prev, n, activation):
     """
     Creates a batch normalization layer for a neural network in TensorFlow.
-
-    Args:
-        prev: The activated output of the previous layer.
-        n: The number of nodes in the layer to be created.
-        activation: The activation function to use on the output.
-
-    Returns:
-        A tensor of the activated output for the layer.
     """
-    # Initialize the base Dense layer
+    # 1. Base Dense layer with specified initializer
     initializer = tf.keras.initializers.VarianceScaling(mode='fan_avg')
     dense = tf.keras.layers.Dense(units=n, kernel_initializer=initializer)
 
-    # Apply the dense layer
+    # 2. Linear transformation
     z = dense(prev)
 
-    # Apply Batch Normalization
-    # Gamma (scale) is initialized to 1, Beta (offset) to 0 by default
+    # 3. Batch Normalization
+    # Gamma (scale) default 'ones', Beta (offset) default 'zeros'
     bn = tf.keras.layers.BatchNormalization(
         axis=-1,
-        epsilon=1e-7
+        epsilon=1e-7,
+        gamma_initializer='ones',
+        beta_initializer='zeros'
     )
     
-    # Normalize the output of the dense layer
+    # 4. Normalize
     z_bn = bn(z)
 
-    # Apply the activation function
+    # 5. Activation
     return activation(z_bn)
