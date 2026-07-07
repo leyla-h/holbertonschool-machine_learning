@@ -16,7 +16,7 @@ def one_hot(labels, classes=None):
     """
     if classes is None:
         classes = labels.max() + 1
-    
+
     one_hot_matrix = K.utils.to_categorical(labels, num_classes=classes)
-    
+
     return one_hot_matrix
