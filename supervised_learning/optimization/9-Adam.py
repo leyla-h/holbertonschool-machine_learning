@@ -25,17 +25,13 @@ def update_variables_Adam(alpha, beta1, beta2, epsilon, var, grad, v, s, t):
     """
     # 1. Update biased first moment estimate
     v_new = beta1 * v + (1 - beta1) * grad
-    
     # 2. Update biased second raw moment estimate
     s_new = beta2 * s + (1 - beta2) * (grad ** 2)
-    
     # 3. Compute bias-corrected first moment estimate
     v_corrected = v_new / (1 - beta1 ** t)
-    
     # 4. Compute bias-corrected second raw moment estimate
     s_corrected = s_new / (1 - beta2 ** t)
-    
     # 5. Update the variable
     var_new = var - alpha * (v_corrected / (np.sqrt(s_corrected) + epsilon))
-    
+
     return var_new, v_new, s_new
