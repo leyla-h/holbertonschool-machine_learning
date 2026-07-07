@@ -59,4 +59,5 @@ def train_model(network, data, labels, batch_size, epochs,
         verbose=verbose,
         shuffle=shuffle
     )
+
     return history
