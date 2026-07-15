@@ -22,7 +22,8 @@ def dropout_forward_prop(X, weights, L, keep_prob):
 
         if i < L:
             a = np.tanh(z)
-            d = (np.random.rand(a.shape[0], a.shape[1]) < keep_prob).astype(int)
+            d = (np.random.rand(a.shape[0], a.shape[1]) < keep_prob)
+            d = d.astype(int)
             a = (a * d) / keep_prob
             cache['D' + str(i)] = d
             cache['A' + str(i)] = a
