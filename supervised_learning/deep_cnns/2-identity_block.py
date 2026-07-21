@@ -45,7 +45,8 @@ def identity_block(A_prev, filters):
     )(act2)
     bn3 = K.layers.BatchNormalization(axis=3)(conv3)
 
-    # Final step: Add shortcut value to main path, and pass it through a ReLU activation
+    # Final step: Add shortcut value to main path,
+    # and pass it through a ReLU activation
     add = K.layers.Add()([bn3, A_prev])
     output = K.layers.Activation('relu')(add)
 
