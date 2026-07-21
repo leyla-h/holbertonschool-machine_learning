@@ -7,7 +7,8 @@ import numpy as np
 
 def conv_forward(A_prev, W, b, activation, padding="same", stride=(1, 1)):
     """
-    Performs forward propagation over a convolutional layer of a neural network.
+    Performs forward propagation over
+    a convolutional layer of a neural network.
     """
     m, h_prev, w_prev, c_prev = A_prev.shape
     kh, kw, c_prev, c_new = W.shape
@@ -47,7 +48,9 @@ def conv_forward(A_prev, W, b, activation, padding="same", stride=(1, 1)):
             horiz_end = horiz_start + kw
 
             # Define the slice
-            slice_A = A_prev_pad[:, vert_start:vert_end, horiz_start:horiz_end, :]
+            slice_A = A_prev_pad[
+                :, vert_start:vert_end, horiz_start:horiz_end, :
+            ]
 
             # Compute the convolution for each channel
             for k in range(c_new):
