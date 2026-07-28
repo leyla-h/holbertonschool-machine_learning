@@ -129,14 +129,19 @@ class NST:
            len(input_layer.shape) != 4:
             raise TypeError("input_layer must be a tensor of rank 4")
 
+        # Shape of input_layer is (1, h, w, c)
+        # Reshape to (h * w, c)
         shape = tf.shape(input_layer)
         h = shape[1]
         w = shape[2]
         c = shape[3]
 
         features = tf.reshape(input_layer, (h * w, c))
+        # Gram matrix: F^T * F, shape (c, c)
         gram = tf.matmul(features, features, transpose_a=True)
+        # Normalize by H * W
         gram = gram / tf.cast(h * w, tf.float32)
+        # Expand dims to shape (1, c, c)
         gram = tf.expand_dims(gram, axis=0)
 
         return gram
@@ -145,15 +150,23 @@ class NST:
         """
         Extracts the features used to calculate neural style cost.
         """
-        style_outputs = self.model(self.style_image)
-        content_output = self.model(self.content_image)
+        style_image_255 = self.style_image * 255
+        content_image_255 = self.content_image * 255
 
-        # Style outputs are all except the last one (which is content_layer)
-        style_features = style_outputs[:-1]
+        preprocess_style = tf.keras.applications.vgg19.preprocess_input(
+            style_image_255
+        )
+        preprocess_content = tf.keras.applications.vgg19.preprocess_input(
+            content_image_255
+        )
+
+        style_outputs = self.model(preprocess_style)
+        content_outputs = self.model(preprocess_content)
+
+        style_features = style_outputs[:len(self.style_layers)]
+        content_feature = content_outputs[len(self.style_layers)]
+
         self.gram_style_features = [
-            self.gram_matrix(style_feature)
-            for style_feature in style_features
+            self.gram_matrix(feature) for feature in style_features
         ]
-
-        # Content feature is the last output
-        self.content_feature = content_output[-1]
+        self.content_feature = content_feature
