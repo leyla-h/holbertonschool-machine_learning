@@ -210,23 +210,26 @@ class Yolo:
 
     def preprocess_images(self, images):
         """
-        Preprocess images for the Darknet model.
+        Preprocess images before feeding them to the Darknet model.
         """
-        input_w = int(self.model.input.shape[2])
-        input_h = int(self.model.input.shape[1])
+        input_h = self.model.input.shape[1]
+        input_w = self.model.input.shape[2]
 
         pimages = []
         image_shapes = []
 
         for img in images:
-            image_shapes.append(img.shape[:2])
+            image_shapes.append([img.shape[0], img.shape[1]])
+
             resized = cv2.resize(
                 img,
                 (input_w, input_h),
                 interpolation=cv2.INTER_CUBIC
             )
-            scaled = resized.astype(np.float32) / 255.0
-            pimages.append(scaled)
+
+            rescaled = resized / 255.0
+
+            pimages.append(rescaled)
 
         pimages = np.array(pimages)
         image_shapes = np.array(image_shapes)
