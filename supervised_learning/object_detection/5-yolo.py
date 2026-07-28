@@ -212,8 +212,8 @@ class Yolo:
         """
         Preprocess images for the Darknet model.
         """
-        input_w = self.model.input.shape[2]
-        input_h = self.model.input.shape[1]
+        input_w = int(self.model.input.shape[2])
+        input_h = int(self.model.input.shape[1])
 
         pimages = []
         image_shapes = []
