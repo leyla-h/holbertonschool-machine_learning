@@ -88,7 +88,8 @@ class NST:
 
     def load_model(self):
         """
-        Creates the model used to calculate cost using VGG19.
+        Creates the model used to calculate cost using VGG19
+        with average pooling instead of max pooling.
         """
         vgg = tf.keras.applications.vgg19.VGG19(
             include_top=False,
@@ -96,8 +97,25 @@ class NST:
         )
         vgg.trainable = False
 
-        layer_names = self.style_layers + [self.content_layer]
-        outputs = [vgg.get_layer(name).output for name in layer_names]
+        inputs = vgg.input
+        x = inputs
 
-        model = tf.keras.models.Model(inputs=vgg.input, outputs=outputs)
+        layers_to_extract = self.style_layers + [self.content_layer]
+        outputs = []
+
+        for layer in vgg.layers[1:]:
+            if isinstance(layer, tf.keras.layers.MaxPooling2D):
+                x = tf.keras.layers.AveragePooling2D(
+                    pool_size=layer.pool_size,
+                    strides=layer.strides,
+                    padding=layer.padding,
+                    name=layer.name.replace('pool', 'pool')
+                )(x)
+            else:
+                x = layer(x)
+
+            if layer.name in layers_to_extract:
+                outputs.append(x)
+
+        model = tf.keras.models.Model(inputs=inputs, outputs=outputs)
         return model
