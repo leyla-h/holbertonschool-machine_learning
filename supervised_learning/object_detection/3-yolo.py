@@ -95,13 +95,17 @@ class Yolo:
         box_scores = []
 
         for b, c, p in zip(boxes, box_confidences, box_class_probs):
+            # Box scores = box confidence * class probabilities
             scores = c * p
 
+            # Find the maximum box scores and their corresponding classes
             max_scores = np.max(scores, axis=-1)
             classes = np.argmax(scores, axis=-1)
 
+            # Filter mask based on class threshold
             mask = max_scores >= self.class_t
 
+            # Apply mask to extract valid elements
             filtered_boxes.append(b[mask])
             box_classes.append(classes[mask])
             box_scores.append(max_scores[mask])
@@ -119,69 +123,63 @@ class Yolo:
 
     def non_max_suppression(self, filtered_boxes, box_classes, box_scores):
         """
-        Perform non-max suppression on filtered boxes.
+        Apply Non-max Suppression to filtered boxes.
         """
-        unique_classes = np.unique(box_classes)
-
         box_predictions = []
         predicted_box_classes = []
         predicted_box_scores = []
 
-        for cls in unique_classes:
-            cls_indices = np.where(box_classes == cls)[0]
-            cls_boxes = filtered_boxes[cls_indices]
-            cls_scores = box_scores[cls_indices]
-            cls_classes = box_classes[cls_indices]
+        unique_classes = np.unique(box_classes)
 
-            sort_indices = np.argsort(cls_scores)[::-1]
-            cls_boxes = cls_boxes[sort_indices]
-            cls_scores = cls_scores[sort_indices]
-            cls_classes = cls_classes[sort_indices]
+        for cls in unique_classes:
+            # Get all boxes/scores belonging to this class
+            cls_mask = box_classes == cls
+            cls_boxes = filtered_boxes[cls_mask]
+            cls_scores = box_scores[cls_mask]
+
+            # Sort by descending score
+            idx_order = np.flip(cls_scores.argsort(), axis=0)
+            cls_boxes = cls_boxes[idx_order]
+            cls_scores = cls_scores[idx_order]
+
+            x1 = cls_boxes[:, 0]
+            y1 = cls_boxes[:, 1]
+            x2 = cls_boxes[:, 2]
+            y2 = cls_boxes[:, 3]
+            areas = (x2 - x1) * (y2 - y1)
 
             keep = []
-            while len(cls_boxes) > 0:
-                keep.append(0)
-                if len(cls_boxes) == 1:
+            indices = np.arange(len(cls_scores))
+
+            while len(indices) > 0:
+                current = indices[0]
+                keep.append(current)
+
+                if len(indices) == 1:
                     break
 
-                current_box = cls_boxes[0]
-                other_boxes = cls_boxes[1:]
+                rest = indices[1:]
 
-                x1 = np.maximum(current_box[0], other_boxes[:, 0])
-                y1 = np.maximum(current_box[1], other_boxes[:, 1])
-                x2 = np.minimum(current_box[2], other_boxes[:, 2])
-                y2 = np.minimum(current_box[3], other_boxes[:, 3])
+                xx1 = np.maximum(x1[current], x1[rest])
+                yy1 = np.maximum(y1[current], y1[rest])
+                xx2 = np.minimum(x2[current], x2[rest])
+                yy2 = np.minimum(y2[current], y2[rest])
 
-                intersection = np.maximum(0, x2 - x1) * np.maximum(0, y2 - y1)
-                current_area = (current_box[2] - current_box[0]) * \
-                               (current_box[3] - current_box[1])
-                other_area = (other_boxes[:, 2] - other_boxes[:, 0]) * \
-                             (other_boxes[:, 3] - other_boxes[:, 1])
+                w = np.maximum(0, xx2 - xx1)
+                h = np.maximum(0, yy2 - yy1)
+                inter = w * h
 
-                union = current_area + other_area - intersection
-                iou = intersection / union
+                union = areas[current] + areas[rest] - inter
+                iou = inter / union
 
-                indices = np.where(iou <= self.nms_t)[0]
-                cls_boxes = cls_boxes[indices + 1]
-                cls_scores = cls_scores[indices + 1]
-                cls_classes = cls_classes[indices + 1]
+                indices = rest[iou <= self.nms_t]
 
-            if len(keep) > 0:
-                box_predictions.append(cls_boxes[keep])
-                predicted_box_classes.append(cls_classes[keep])
-                predicted_box_scores.append(cls_scores[keep])
+            box_predictions.append(cls_boxes[keep])
+            predicted_box_classes.append(np.full(len(keep), cls))
+            predicted_box_scores.append(cls_scores[keep])
 
-        if box_predictions and any(len(b) > 0 for b in box_predictions):
-            box_predictions = np.concatenate(box_predictions, axis=0)
-            predicted_box_classes = np.concatenate(
-                predicted_box_classes, axis=0
-            )
-            predicted_box_scores = np.concatenate(
-                predicted_box_scores, axis=0
-            )
-        else:
-            box_predictions = np.array([])
-            predicted_box_classes = np.array([])
-            predicted_box_scores = np.array([])
+        box_predictions = np.concatenate(box_predictions, axis=0)
+        predicted_box_classes = np.concatenate(predicted_box_classes, axis=0)
+        predicted_box_scores = np.concatenate(predicted_box_scores, axis=0)
 
         return box_predictions, predicted_box_classes, predicted_box_scores
