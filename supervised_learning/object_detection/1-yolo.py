@@ -57,7 +57,8 @@ class Yolo:
             c_y = np.repeat(c_y, anchor_boxes, axis=2)
             c_y = np.expand_dims(c_y, axis=3)
 
-            b_xy = (1 / (1 + np.exp(-t_xy))) + np.concatenate([c_x, c_y], axis=-1)
+            sig_xy = 1 / (1 + np.exp(-t_xy))
+            b_xy = sig_xy + np.concatenate([c_x, c_y], axis=-1)
             b_xy = b_xy / np.array([grid_width, grid_height], dtype=np.float32)
 
             anchor_w = self.anchors[i, :, 0].reshape(1, 1, anchor_boxes, 1)
