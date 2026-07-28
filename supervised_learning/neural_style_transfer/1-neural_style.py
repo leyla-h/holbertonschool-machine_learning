@@ -97,10 +97,10 @@ class NST:
         )
         vgg.trainable = False
 
+        # Construct a new model with AveragePooling2D instead of MaxPooling2D
         inputs = vgg.input
         x = inputs
-
-        layers_to_extract = self.style_layers + [self.content_layer]
+        layer_names = self.style_layers + [self.content_layer]
         outputs = []
 
         for layer in vgg.layers[1:]:
@@ -109,12 +109,12 @@ class NST:
                     pool_size=layer.pool_size,
                     strides=layer.strides,
                     padding=layer.padding,
-                    name=layer.name.replace('pool', 'pool')
+                    name=layer.name
                 )(x)
             else:
                 x = layer(x)
 
-            if layer.name in layers_to_extract:
+            if layer.name in layer_names:
                 outputs.append(x)
 
         model = tf.keras.models.Model(inputs=inputs, outputs=outputs)
