@@ -171,30 +171,12 @@ class NST:
                 f"gram_target must be a tensor of shape [1, {c}, {c}]"
             )
 
-        gram_output = self.gram_matrix(style_output)
-        cost = tf.reduce_sum(tf.square(gram_output - gram_target))
-        # Normalization factor: 1 / (4 * c^2 * (h * w)^2) or similar?
-        # Wait, let's check standard formula or expected output for 4-main.py
-        # Actually, formula in paper: E_l = 1 / (4 * N_l^2 * M_l^2) * sum((G - A)^2)
-        # Let's check what N_l and M_l are or if there's a specific scaling.
-        # Let's check shape of output in 4-main.py: 1248908.5
-        # Let's write standard style cost formula from paper or TensorFlow tutorial.
-        # TF tutorial: style_score = tf.reduce_sum(tf.square(gram_s - gram_g)) / (4 * (c * h * w)**2)
-        # Let's check what Holberton expects.
-        # Let's look at the image provided or test it.
-        # Image shows: E_l = 1 / C_l^2 * sum((G_ij - A_ij)^2) -- wait, let's look closely at image dfa578.png.
-        # In dfa578.png: E_l = (1 / C_l^2) * sum_i sum_j (G_{ij}^l - A_{ij}^l)^2
-        # Let's check if there is a 4 or N_l^2 M_l^2 or just C_l^2.
-        # The image formula explicitly shows: 1 / C_l^2 * sum_i sum_j (G - A)^2.
         shape = tf.shape(style_output)
         h = tf.cast(shape[1], tf.float32)
         w = tf.cast(shape[2], tf.float32)
         c_float = tf.cast(c, tf.float32)
 
-        # Let's check if dividing by (4 * c * c * h * w) or C_l^2 is needed.
-        # Let's test with 1 / (4 * c_float**2 * h**object? wait, let's check what Holberton's slide/formula says).
-        # In Holberton, the image provided (dfa578.png) shows:
-        # E_l = (1 / C_l^2) * sum_i sum_j (G_ij - A_ij)^2
-        # Wait, let's check if C_l is shape[3].
-        cost = tf.reduce_sum(tf.square(gram_output - gram_target)) / (c_float ** 2)
+        gram_output = self.gram_matrix(style_output)
+        cost = tf.reduce_sum(tf.square(gram_output - gram_target))
+        cost = cost / (4.0 * (c_float ** 2) * ((h * w) ** 2))
         return cost
