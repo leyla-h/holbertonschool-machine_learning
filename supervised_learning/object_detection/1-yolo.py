@@ -34,19 +34,15 @@ class Yolo:
         for i, output in enumerate(outputs):
             grid_height, grid_width, anchor_boxes, _ = output.shape
 
-            # Extract t_x, t_y, t_w, t_h
             t_xy = output[..., :2]
             t_wh = output[..., 2:4]
 
-            # Box confidence
             confidence = 1 / (1 + np.exp(-output[..., 4:5]))
             box_confidences.append(confidence)
 
-            # Box class probabilities
             class_probs = 1 / (1 + np.exp(-output[..., 5:]))
             box_class_probs.append(class_probs)
 
-            # Grid creation for bx, by
             c_x = np.arange(grid_width)
             c_y = np.arange(grid_height)
             c_x = np.expand_dims(c_x, axis=0)
@@ -61,14 +57,12 @@ class Yolo:
             c_y = np.repeat(c_y, anchor_boxes, axis=2)
             c_y = np.expand_dims(c_y, axis=3)
 
-            # Sigmoid for t_x, t_y
             b_xy = (1 / (1 + np.exp(-t_xy))) + np.concatenate([c_x, c_y], axis=-1)
             b_xy = b_xy / np.array([grid_width, grid_height], dtype=np.float32)
 
-            # Exponential for t_w, t_h combined with anchors
-            anchor_w = self.anchors[i, :, 0]
-            anchor_h = self.anchors[i, :, 1]
-            b_wh = np.exp(t_wh) * np.array([anchor_w, anchor_h], dtype=np.float32)
+            anchor_w = self.anchors[i, :, 0].reshape(1, 1, anchor_boxes, 1)
+            anchor_h = self.anchors[i, :, 1].reshape(1, 1, anchor_boxes, 1)
+            b_wh = np.exp(t_wh) * np.concatenate([anchor_w, anchor_h], axis=-1)
 
             input_shape = np.array(
                 [self.model.input.shape[1], self.model.input.shape[2]],
@@ -76,13 +70,11 @@ class Yolo:
             )
             b_wh = b_wh / input_shape
 
-            # Convert to (x1, y1, x2, y2)
             b_x1y1 = b_xy - (b_wh / 2)
             b_x2y2 = b_xy + (b_wh / 2)
 
             processed_boxes = np.concatenate([b_x1y1, b_x2y2], axis=-1)
 
-            # Rescale boxes to original image size
             orig_height, orig_width = image_size[0], image_size[1]
             processed_boxes[..., 0] *= orig_width
             processed_boxes[..., 1] *= orig_height
@@ -90,4 +82,5 @@ class Yolo:
             processed_boxes[..., 3] *= orig_height
 
             boxes.append(processed_boxes)
-        return boxes, box_confidences, box_class_p
+
+        return boxes, box_confidences, box_class_probs
