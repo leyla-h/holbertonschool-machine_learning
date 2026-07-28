@@ -133,7 +133,6 @@ class Yolo:
             cls_scores = box_scores[cls_indices]
             cls_classes = box_classes[cls_indices]
 
-            # Sort by box scores in descending order
             sort_indices = np.argsort(cls_scores)[::-1]
             cls_boxes = cls_boxes[sort_indices]
             cls_scores = cls_scores[sort_indices]
@@ -148,7 +147,6 @@ class Yolo:
                 current_box = cls_boxes[0]
                 other_boxes = cls_boxes[1:]
 
-                # Calculate Intersection over Union (IoU)
                 x1 = np.maximum(current_box[0], other_boxes[:, 0])
                 y1 = np.maximum(current_box[1], other_boxes[:, 1])
                 x2 = np.minimum(current_box[2], other_boxes[:, 2])
@@ -163,20 +161,29 @@ class Yolo:
                 union = current_area + other_area - intersection
                 iou = intersection / union
 
-                # Keep boxes with IoU less than or equal to nms threshold
                 indices = np.where(iou <= self.nms_t)[0]
                 cls_boxes = cls_boxes[indices + 1]
                 cls_scores = cls_scores[indices + 1]
                 cls_classes = cls_classes[indices + 1]
 
-            box_predictions.append(cls_boxes[keep] if len(keep) > 0 else np.array([]))
-            predicted_box_classes.append(cls_classes[keep] if len(keep) > 0 else np.array([]))
-            predicted_box_scores.append(cls_scores[keep] if len(keep) > 0 else np.array([]))
+            box_predictions.append(
+                cls_boxes[keep] if len(keep) > 0 else np.array([])
+            )
+            predicted_box_classes.append(
+                cls_classes[keep] if len(keep) > 0 else np.array([])
+            )
+            predicted_box_scores.append(
+                cls_scores[keep] if len(keep) > 0 else np.array([])
+            )
 
         if box_predictions:
             box_predictions = np.concatenate(box_predictions, axis=0)
-            predicted_box_classes = np.concatenate(predicted_box_classes, axis=0)
-            predicted_box_scores = np.concatenate(predicted_box_scores, axis=0)
+            predicted_box_classes = np.concatenate(
+                predicted_box_classes, axis=0
+            )
+            predicted_box_scores = np.concatenate(
+                predicted_box_scores, axis=0
+            )
         else:
             box_predictions = np.array([])
             predicted_box_classes = np.array([])
