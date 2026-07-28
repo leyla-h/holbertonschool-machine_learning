@@ -42,8 +42,7 @@ class NST:
 
         self.style_image = self.scale_image(style_image)
         self.content_image = self.scale_image(content_image)
-        self.alpha = float(alpha) if isinstance(alpha, float) or not isinstance(alpha, int) else (alpha if alpha != int(alpha) else int(alpha))
-        # Keep original int format if it's an int, or float if float
+
         if isinstance(alpha, int) and not isinstance(alpha, bool):
             self.alpha = alpha
         else:
