@@ -166,15 +166,10 @@ class Yolo:
                 cls_scores = cls_scores[indices + 1]
                 cls_classes = cls_classes[indices + 1]
 
-            box_predictions.append(
-                cls_boxes[keep] if len(keep) > 0 else np.array([])
-            )
-            predicted_box_classes.append(
-                cls_classes[keep] if len(keep) > 0 else np.array([])
-            )
-            predicted_box_scores.append(
-                cls_scores[keep] if len(keep) > 0 else np.array([])
-            )
+            if len(keep) > 0:
+                box_predictions.append(cls_boxes[keep])
+                predicted_box_classes.append(cls_classes[keep])
+                predicted_box_scores.append(cls_scores[keep])
 
         if box_predictions:
             box_predictions = np.concatenate(box_predictions, axis=0)
