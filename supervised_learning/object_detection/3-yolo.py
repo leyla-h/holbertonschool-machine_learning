@@ -128,7 +128,7 @@ class Yolo:
         predicted_box_scores = []
 
         for cls in unique_classes:
-            cls_indices = np.where(box_classes == cls)
+            cls_indices = np.where(box_classes == cls)[0]
             cls_boxes = filtered_boxes[cls_indices]
             cls_scores = box_scores[cls_indices]
             cls_classes = box_classes[cls_indices]
@@ -171,7 +171,7 @@ class Yolo:
                 predicted_box_classes.append(cls_classes[keep])
                 predicted_box_scores.append(cls_scores[keep])
 
-        if box_predictions:
+        if box_predictions and any(len(b) > 0 for b in box_predictions):
             box_predictions = np.concatenate(box_predictions, axis=0)
             predicted_box_classes = np.concatenate(
                 predicted_box_classes, axis=0
