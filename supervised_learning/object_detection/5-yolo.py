@@ -221,8 +221,8 @@ class Yolo:
         """
         Resizes and rescales images for input to the Darknet model.
         """
-        input_h = self.model.input.shape[1]
-        input_w = self.model.input.shape[2]
+        input_h = int(self.model.input.shape[1])
+        input_w = int(self.model.input.shape[2])
 
         pimages = []
         image_shapes = []
@@ -235,10 +235,10 @@ class Yolo:
                 (input_w, input_h),
                 interpolation=cv2.INTER_CUBIC
             )
-            rescaled = resized / 255.0
+            rescaled = resized.astype(np.float32) / 255.0
             pimages.append(rescaled)
 
-        pimages = np.array(pimages)
+        pimages = np.array(pimages, dtype=np.float32)
         image_shapes = np.array(image_shapes)
 
         return pimages, image_shapes
