@@ -4,6 +4,7 @@ Initialize Yolo class for object detection using YOLOv3.
 """
 
 import os
+import glob
 import cv2
 import tensorflow.keras as K
 import numpy as np
@@ -198,22 +199,12 @@ class Yolo:
         """
         Load all images from a given folder path.
         """
+        image_paths = glob.glob(os.path.join(folder_path, '*'))
         images = []
-        image_paths = []
 
-        valid_extensions = ['.jpg', '.jpeg', '.png']
-        for root, dirs, files in os.walk(folder_path):
-            dirs.sort()
-            for file in sorted(files):
-                if any(
-                        file.lower().endswith(ext)
-                        for ext in valid_extensions
-                ):
-                    path = os.path.join(root, file)
-                    img = cv2.imread(path)
-                    if img is not None:
-                        images.append(img)
-                        image_paths.append(path)
+        for path in image_paths:
+            image = cv2.imread(path)
+            images.append(image)
 
         return images, image_paths
 
@@ -221,8 +212,8 @@ class Yolo:
         """
         Resizes and rescales images for input to the Darknet model.
         """
-        input_h = int(self.model.input.shape[1])
-        input_w = int(self.model.input.shape[2])
+        input_h = self.model.input.shape[2]
+        input_w = self.model.input.shape[1]
 
         pimages = []
         image_shapes = []
@@ -235,10 +226,10 @@ class Yolo:
                 (input_w, input_h),
                 interpolation=cv2.INTER_CUBIC
             )
-            rescaled = resized.astype(np.float32) / 255.0
+            rescaled = resized / 255.0
             pimages.append(rescaled)
 
-        pimages = np.array(pimages, dtype=np.float32)
+        pimages = np.array(pimages)
         image_shapes = np.array(image_shapes)
 
         return pimages, image_shapes
@@ -258,7 +249,7 @@ class Yolo:
             cv2.rectangle(image, (x1, y1), (x2, y2), (255, 0, 0), 2)
 
             class_name = self.class_names[box_classes[i]]
-            score = str(round(box_scores[i], 2))
+            score = "{:.2f}".format(box_scores[i])
             text = "{} {}".format(class_name, score)
 
             cv2.putText(
