@@ -61,11 +61,15 @@ class Yolo:
 
             sig_xy = 1 / (1 + np.exp(-t_xy))
             b_xy = sig_xy + np.concatenate([c_x, c_y], axis=-1)
-            b_xy = b_xy / np.array([grid_width, grid_height], dtype=np.float32)
+            b_xy = b_xy / np.array(
+                [grid_width, grid_height], dtype=np.float32
+            )
 
             anchor_w = self.anchors[i, :, 0].reshape(1, 1, anchor_boxes, 1)
             anchor_h = self.anchors[i, :, 1].reshape(1, 1, anchor_boxes, 1)
-            b_wh = np.exp(t_wh) * np.concatenate([anchor_w, anchor_h], axis=-1)
+            b_wh = np.exp(t_wh) * np.concatenate(
+                [anchor_w, anchor_h], axis=-1
+            )
 
             input_shape = np.array(
                 [self.model.input.shape[1], self.model.input.shape[2]],
@@ -154,7 +158,8 @@ class Yolo:
                 x2 = np.minimum(current_box[2], other_boxes[:, 2])
                 y2 = np.minimum(current_box[3], other_boxes[:, 3])
 
-                intersection = np.maximum(0, x2 - x1) * np.maximum(0, y2 - y1)
+                intersection = np.maximum(0, x2 - x1) * \
+                    np.maximum(0, y2 - y1)
                 current_area = (current_box[2] - current_box[0]) * \
                                (current_box[3] - current_box[1])
                 other_area = (other_boxes[:, 2] - other_boxes[:, 0]) * \
@@ -199,7 +204,10 @@ class Yolo:
         valid_extensions = ['.jpg', '.jpeg', '.png']
         for root, _, files in os.walk(folder_path):
             for file in files:
-                if any(file.lower().endswith(ext) for ext in valid_extensions):
+                if any(
+                        file.lower().endswith(ext)
+                        for ext in valid_extensions
+                ):
                     path = os.path.join(root, file)
                     img = cv2.imread(path)
                     if img is not None:
@@ -210,7 +218,7 @@ class Yolo:
 
     def preprocess_images(self, images):
         """
-        Preprocess images before feeding them to the Darknet model.
+        Resizes and rescales images for input to the Darknet model.
         """
         input_h = self.model.input.shape[1]
         input_w = self.model.input.shape[2]
@@ -219,16 +227,14 @@ class Yolo:
         image_shapes = []
 
         for img in images:
-            image_shapes.append([img.shape[0], img.shape[1]])
+            image_shapes.append(img.shape[:2])
 
             resized = cv2.resize(
                 img,
                 (input_w, input_h),
                 interpolation=cv2.INTER_CUBIC
             )
-
             rescaled = resized / 255.0
-
             pimages.append(rescaled)
 
         pimages = np.array(pimages)
