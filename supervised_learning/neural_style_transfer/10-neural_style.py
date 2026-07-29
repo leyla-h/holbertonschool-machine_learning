@@ -219,6 +219,10 @@ class NST:
         """
         Calculates the variational cost for the generated image.
         """
+        if not isinstance(generated_image, (tf.Tensor, tf.Variable)) or \
+                len(generated_image.shape) not in (3, 4):
+            raise TypeError("image must be a tensor of rank 3 or 4")
+
         return tf.reduce_sum(tf.image.total_variation(generated_image))
 
     def total_cost(self, generated_image):
