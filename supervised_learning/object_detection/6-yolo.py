@@ -61,11 +61,15 @@ class Yolo:
 
             sig_xy = 1 / (1 + np.exp(-t_xy))
             b_xy = sig_xy + np.concatenate([c_x, c_y], axis=-1)
-            b_xy = b_xy / np.array([grid_width, grid_height], dtype=np.float32)
+            b_xy = b_xy / np.array(
+                [grid_width, grid_height], dtype=np.float32
+            )
 
             anchor_w = self.anchors[i, :, 0].reshape(1, 1, anchor_boxes, 1)
             anchor_h = self.anchors[i, :, 1].reshape(1, 1, anchor_boxes, 1)
-            b_wh = np.exp(t_wh) * np.concatenate([anchor_w, anchor_h], axis=-1)
+            b_wh = np.exp(t_wh) * np.concatenate(
+                [anchor_w, anchor_h], axis=-1
+            )
 
             input_shape = np.array(
                 [self.model.input.shape[1], self.model.input.shape[2]],
@@ -154,7 +158,8 @@ class Yolo:
                 x2 = np.minimum(current_box[2], other_boxes[:, 2])
                 y2 = np.minimum(current_box[3], other_boxes[:, 3])
 
-                intersection = np.maximum(0, x2 - x1) * np.maximum(0, y2 - y1)
+                intersection = np.maximum(0, x2 - x1) * \
+                    np.maximum(0, y2 - y1)
                 current_area = (current_box[2] - current_box[0]) * \
                                (current_box[3] - current_box[1])
                 other_area = (other_boxes[:, 2] - other_boxes[:, 0]) * \
@@ -197,9 +202,13 @@ class Yolo:
         image_paths = []
 
         valid_extensions = ['.jpg', '.jpeg', '.png']
-        for root, _, files in os.walk(folder_path):
-            for file in files:
-                if any(file.lower().endswith(ext) for ext in valid_extensions):
+        for root, dirs, files in os.walk(folder_path):
+            dirs.sort()
+            for file in sorted(files):
+                if any(
+                        file.lower().endswith(ext)
+                        for ext in valid_extensions
+                ):
                     path = os.path.join(root, file)
                     img = cv2.imread(path)
                     if img is not None:
@@ -210,58 +219,52 @@ class Yolo:
 
     def preprocess_images(self, images):
         """
-        Preprocess images for the Darknet model.
+        Resizes and rescales images for input to the Darknet model.
         """
-        input_w = int(self.model.input.shape[2])
         input_h = int(self.model.input.shape[1])
+        input_w = int(self.model.input.shape[2])
 
         pimages = []
         image_shapes = []
 
         for img in images:
             image_shapes.append(img.shape[:2])
+
             resized = cv2.resize(
                 img,
                 (input_w, input_h),
                 interpolation=cv2.INTER_CUBIC
             )
-            scaled = resized.astype(np.float32) / 255.0
-            pimages.append(scaled)
+            rescaled = resized.astype(np.float32) / 255.0
+            pimages.append(rescaled)
 
-        pimages = np.array(pimages)
+        pimages = np.array(pimages, dtype=np.float32)
         image_shapes = np.array(image_shapes)
 
         return pimages, image_shapes
 
     def show_boxes(self, image, boxes, box_classes, box_scores, file_name):
         """
-        Display image with boundary boxes, class names, and scores.
+        Displays the image with all boundary boxes, class names,
+        and box scores.
         """
-        img_copy = image.copy()
+        for i, box in enumerate(boxes):
+            x1, y1, x2, y2 = box
+            x1 = int(x1)
+            y1 = int(y1)
+            x2 = int(x2)
+            y2 = int(y2)
 
-        for i in range(len(boxes)):
-            x1, y1, x2, y2 = boxes[i].astype(int)
-            cls_index = box_classes[i]
-            cls_name = self.class_names[cls_index]
-            score = box_scores[i]
+            cv2.rectangle(image, (x1, y1), (x2, y2), (255, 0, 0), 2)
 
-            text = f"{cls_name} {score:.2f}"
+            class_name = self.class_names[box_classes[i]]
+            score = str(round(box_scores[i], 2))
+            text = "{} {}".format(class_name, score)
 
-            # Draw blue boundary box (BGR: 255, 0, 0)
-            cv2.rectangle(
-                img_copy,
-                (x1, y1),
-                (x2, y2),
-                (255, 0, 0),
-                2
-            )
-
-            # Draw text in red (BGR: 0, 0, 255) 5px above top-left corner
-            text_pos = (x1, y1 - 5)
             cv2.putText(
-                img_copy,
+                image,
                 text,
-                text_pos,
+                (x1, y1 - 5),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5,
                 (0, 0, 255),
@@ -269,13 +272,14 @@ class Yolo:
                 cv2.LINE_AA
             )
 
-        cv2.imshow(file_name, img_copy)
+        cv2.imshow(file_name, image)
+        key = cv2.waitKey(0)
 
-        key = cv2.waitKey(0) & 0xFF
         if key == ord('s'):
             if not os.path.exists('detections'):
                 os.makedirs('detections')
-            output_path = os.path.join('detections', file_name)
-            cv2.imwrite(output_path, img_copy)
-
-        cv2.destroyAllWindows()
+            save_path = os.path.join('detections', file_name)
+            cv2.imwrite(save_path, image)
+            cv2.destroyAllWindows()
+        else:
+            cv2.destroyAllWindows()
