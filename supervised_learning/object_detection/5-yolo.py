@@ -202,8 +202,9 @@ class Yolo:
         image_paths = []
 
         valid_extensions = ['.jpg', '.jpeg', '.png']
-        for root, _, files in os.walk(folder_path):
-            for file in files:
+        for root, dirs, files in os.walk(folder_path):
+            dirs.sort()
+            for file in sorted(files):
                 if any(
                         file.lower().endswith(ext)
                         for ext in valid_extensions
