@@ -230,13 +230,15 @@ class Yolo:
         for img in images:
             image_shapes.append(img.shape[:2])
 
+            img_float = img.astype(np.float32) / 255.0
+
             resized = cv2.resize(
-                img,
+                img_float,
                 (input_w, input_h),
                 interpolation=cv2.INTER_CUBIC
             )
-            rescaled = resized.astype(np.float32) / 255.0
-            pimages.append(rescaled)
+
+            pimages.append(resized)
 
         pimages = np.array(pimages, dtype=np.float32)
         image_shapes = np.array(image_shapes)
