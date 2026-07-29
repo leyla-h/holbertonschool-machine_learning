@@ -250,8 +250,9 @@ class NST:
 
         return gradients, J_total, J_content, J_style
 
-    def generate_image(self, iterations=1000, step=None, lr=0.01,
-                        beta1=0.9, beta2=0.99):
+    def generate_image(
+        self, iterations=1000, step=None, lr=0.01, beta1=0.9, beta2=0.99
+    ):
         """
         Generates the neural style transferred image.
         """
@@ -293,11 +294,8 @@ class NST:
             )
 
             if step is not None and (i % step == 0 or i == iterations):
-                print(
-                    "Cost at iteration {}: {}, content {}, style {}".format(
-                        i, J_total, J_content, J_style
-                    )
-                )
+                msg = "Cost at iteration {}: {}, content {}, style {}"
+                print(msg.format(i, J_total, J_content, J_style))
 
             if J_total < best_cost:
                 best_cost = J_total
