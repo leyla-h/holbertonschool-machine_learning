@@ -51,6 +51,6 @@ def expectation(X, pi, m, S):
 
     total = np.sum(P, axis=0)
     g = P / total
-    l = np.sum(np.log(total))
+    log_likelihood = np.sum(np.log(total))
 
-    return g, l
+    return g, log_likelihood
