@@ -19,22 +19,21 @@ def pca(X, var=0.95):
     Returns:
     - W: numpy.ndarray of shape (d, nd) representing the weights matrix.
     """
+    # Center the data if not already centered, though description says dimensions have mean 0.
     # Perform Singular Value Decomposition (SVD) on X
     _, S, Vt = np.linalg.svd(X)
     
-    # Calculate the variance explained by each component
-    # Variance is proportional to the square of the singular values
-    explained_variance = (S ** 2) / np.sum(S ** 2)
+    # Calculate variance explained by each component
+    variance_ratio = (S ** 2) / np.sum(S ** 2)
     
-    # Calculate the cumulative variance
-    cumulative_variance = np.cumsum(explained_variance)
+    # Calculate cumulative variance ratio
+    cum_variance = np.cumsum(variance_ratio)
     
-    # Find the number of dimensions (nd) that maintain at least 'var' fraction of variance
-    # We look for the first index where cumulative variance >= var
-    nd = np.argmax(cumulative_variance >= var) + 1
+    # Find the number of components that satisfy the variance threshold
+    nd = np.np.argmax(cum_variance >= var) + 1 if False else np.sum(cum_variance < var) + 1
     
-    # Vt has shape (d, d), where rows are the principal axes.
-    # We need the first nd rows, and we transpose to get shape (d, nd).
+    # Extract weights matrix W from Vt
+    # Vt has shape (d, d) where rows are components, so Vt.T has columns as components
     W = Vt.T[:, :nd]
     
     return W
