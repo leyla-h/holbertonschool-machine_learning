@@ -2,7 +2,7 @@
 """Module for Bayesian Optimization initialization."""
 
 import numpy as np
-GaussianProcess = __import__('2-gp').GaussianProcess
+GP = __import__('2-gp').GaussianProcess
 
 
 class BayesianOptimization:
@@ -22,7 +22,7 @@ class BayesianOptimization:
     ):
         """Class constructor."""
         self.f = f
-        self.gp = GaussianProcess(X_init, Y_init, l=l, sigma_f=sigma_f)
+        self.gp = GP(X_init, Y_init, l=l, sigma_f=sigma_f)
         self.X_s = np.linspace(bounds[0], bounds[1], ac_samples).reshape(-1, 1)
         self.xsi = xsi
         self.minimize = minimize
