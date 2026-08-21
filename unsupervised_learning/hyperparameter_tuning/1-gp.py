@@ -21,9 +21,9 @@ class GaussianProcess:
         using the Radial Basis Function (RBF).
         """
         sqdist = (
-            np.sum(X1 ** 2, 1).reshape(-1, 1) +
-            np.sum(X2 ** 2, 1) -
-            2 * np.dot(X1, X2.T)
+            np.sum(X1 ** 2, 1).reshape(-1, 1)
+            + np.sum(X2 ** 2, 1)
+            - 2 * np.dot(X1, X2.T)
         )
         return (self.sigma_f ** 2) * np.exp(-0.5 / (self.l ** 2) * sqdist)
 
@@ -40,11 +40,9 @@ class GaussianProcess:
         K_inv = np.linalg.inv(K)
 
         # Mean: mu = K_s.T * K_inv * Y
-        # Flatten to shape (s,)
         mu = np.dot(K_s.T, np.dot(K_inv, self.Y)).reshape(-1)
 
         # Variance/Sigma: sigma = K_ss - K_s.T * K_inv * K_s
-        # Extract diagonal elements for each point and flatten to shape (s,)
         sigma = np.diagonal(K_ss - np.dot(K_s.T, np.dot(K_inv, K_s)))
 
         return mu, sigma
