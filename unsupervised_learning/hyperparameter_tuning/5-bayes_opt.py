@@ -57,7 +57,14 @@ class BayesianOptimization:
                 break
 
             Y_next = self.f(X_next)
-            self.gp.update(X_next, Y_next)
+            if np.isscalar(Y_next):
+                Y_next = np.array([[Y_next]])
+            elif Y_next.shape == ():
+                Y_next = Y_next.reshape(1, 1)
+            elif Y_next.shape == (1,):
+                Y_next = Y_next.reshape(1, 1)
+
+            self.gp.update(X_next.reshape(1, 1), Y_next)
 
         if self.minimize:
             idx = np.argmin(self.gp.Y)
