@@ -36,11 +36,10 @@ class Dataset:
             tokenizer_pt is the Portuguese tokenizer
             tokenizer_en is the English tokenizer
         """
-        pt_sentences = []
-        en_sentences = []
-        for pt, en in data.as_numpy_iterator():
-            pt_sentences.append(pt.decode('utf-8'))
-            en_sentences.append(en.decode('utf-8'))
+        pairs = [(pt.decode('utf-8'), en.decode('utf-8'))
+                 for pt, en in data.as_numpy_iterator()]
+        pt_sentences = [pair[0] for pair in pairs]
+        en_sentences = [pair[1] for pair in pairs]
 
         pt_base_tokenizer = transformers.AutoTokenizer.from_pretrained(
             'neuralmind/bert-base-portuguese-cased')
