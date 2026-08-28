@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Dataset module for machine translation"""
-from transformers import AutoTokenizer
+import transformers
 from setup import load_pt2en
 
 
@@ -42,9 +42,9 @@ class Dataset:
             pt_sentences.append(pt.decode('utf-8'))
             en_sentences.append(en.decode('utf-8'))
 
-        pt_base_tokenizer = AutoTokenizer.from_pretrained(
+        pt_base_tokenizer = transformers.AutoTokenizer.from_pretrained(
             'neuralmind/bert-base-portuguese-cased')
-        en_base_tokenizer = AutoTokenizer.from_pretrained(
+        en_base_tokenizer = transformers.AutoTokenizer.from_pretrained(
             'bert-base-uncased')
 
         tokenizer_pt = pt_base_tokenizer.train_new_from_iterator(
