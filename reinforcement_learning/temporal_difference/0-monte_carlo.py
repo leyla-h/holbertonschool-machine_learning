@@ -1,55 +1,47 @@
 #!/usr/bin/env python3
-"""Defines a function that performs the Monte Carlo algorithm to
-estimate a value function.
-"""
+"""Monte Carlo algorithm"""
 import numpy as np
 
 
-def monte_carlo(env, V, policy, episodes=5000, max_steps=100, alpha=0.1,
-                 gamma=0.99):
-    """Performs the Monte Carlo algorithm
+def monte_carlo(env, V, policy, episodes=5000, max_steps=100,
+                 alpha=0.1, gamma=0.99):
+    """
+    Performs the Monte Carlo algorithm
 
     Args:
         env: environment instance
-        V: a numpy.ndarray of shape (s,) containing the value estimate
-        policy: a function that takes in a state and returns the next
-            action to take
-        episodes: the total number of episodes to train over
-        max_steps: the maximum number of steps per episode
-        alpha: the learning rate
-        gamma: the discount rate
+        V: numpy.ndarray of shape (s,) containing the value estimate
+        policy: function that takes in a state and returns the
+            next action to take
+        episodes: total number of episodes to train over
+        max_steps: maximum number of steps per episode
+        alpha: learning rate
+        gamma: discount rate
 
     Returns:
         V, the updated value estimate
     """
-    for episode in range(episodes):
+    for ep in range(episodes):
         state, _ = env.reset()
-        episode_history = []
+        episode = []
 
         for step in range(max_steps):
             action = policy(state)
-            new_state, reward, terminated, truncated, _ = env.step(action)
-            episode_history.append((state, reward))
-            state = new_state
+            next_state, reward, terminated, truncated, _ = env.step(action)
+            episode.append((state, reward))
 
             if terminated or truncated:
                 break
 
-        episode_history = np.array(episode_history, dtype=int)
+            state = next_state
+
+        episode = np.array(episode, dtype=int)
         G = 0
-        discounted_returns = []
 
-        for state, reward in episode_history[::-1]:
-            G = reward + gamma * G
-            discounted_returns.append(G)
-
-        discounted_returns = discounted_returns[::-1]
-
-        visited_states = set()
-        for i, (state, _) in enumerate(episode_history):
-            if state not in visited_states:
-                visited_states.add(state)
-                V[state] = V[state] + alpha * (
-                    discounted_returns[i] - V[state])
+        for i, (state, reward) in enumerate(reversed(episode)):
+            G = gamma * G + reward
+            visited_before = state in episode[:episode.shape[0] - i - 1, 0]
+            if not visited_before:
+                V[state] = V[state] + alpha * (G - V[state])
 
     return V
