@@ -1,21 +1,19 @@
 #!/usr/bin/env python3
-"""Defines a function that builds and trains a gensim word2vec model"""
-import gensim
+"""Module that builds and trains a gensim Word2Vec model"""
+from gensim.models import Word2Vec
 
 
-def word2vec_model(
-        sentences, vector_size=100, min_count=5, window=5,
-        negative=5, cbow=True, epochs=5, seed=0, workers=1):
-    """
-    Creates, builds, and trains a gensim word2vec model
+def word2vec_model(sentences, vector_size=100, min_count=5, window=5,
+                    negative=5, cbow=True, epochs=5, seed=0, workers=1):
+    """Creates, builds, and trains a gensim word2vec model
 
     Args:
         sentences (list): list of sentences to be trained on
         vector_size (int): dimensionality of the embedding layer
-        min_count (int): minimum number of occurrences of a word for
-            use in training
-        window (int): maximum distance between the current and
-            predicted word within a sentence
+        min_count (int): minimum number of occurrences of a word for use
+            in training
+        window (int): maximum distance between the current and predicted
+            word within a sentence
         negative (int): size of negative sampling
         cbow (bool): determines the training type; True is for CBOW,
             False is for Skip-gram
@@ -28,7 +26,7 @@ def word2vec_model(
     """
     sg = 0 if cbow else 1
 
-    model = gensim.models.Word2Vec(
+    model = Word2Vec(
         sentences=sentences,
         vector_size=vector_size,
         min_count=min_count,
@@ -37,11 +35,13 @@ def word2vec_model(
         sg=sg,
         seed=seed,
         workers=workers,
-        epochs=epochs)
+        epochs=epochs
+    )
 
     model.train(
         sentences,
         total_examples=model.corpus_count,
-        epochs=model.epochs)
+        epochs=epochs
+    )
 
     return model
