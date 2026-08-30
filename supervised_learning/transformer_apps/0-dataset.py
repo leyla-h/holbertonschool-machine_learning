@@ -2,7 +2,6 @@
 """
 Dataset class that loads and preps a dataset for machine translation.
 """
-import tensorflow as tf
 import transformers
 from setup import load_pt2en
 
