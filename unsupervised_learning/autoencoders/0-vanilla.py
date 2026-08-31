@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Module for creating a vanilla autoencoder model using TensorFlow/Keras."""
-
 import tensorflow.keras as keras
 
 
 def autoencoder(input_dims, hidden_layers, latent_dims):
     """
-    Creates an autoencoder with an encoder, decoder, and full autoencoder model.
+    Creates an autoencoder with an encoder, decoder, and full
+    autoencoder model.
     """
     # --- Encoder ---
     input_img = keras.Input(shape=(input_dims,))
@@ -27,7 +27,6 @@ def autoencoder(input_dims, hidden_layers, latent_dims):
     # --- Full Autoencoder ---
     auto_output = decoder(encoder(input_img))
     auto = keras.Model(input_img, auto_output, name='autoencoder')
-
     auto.compile(optimizer='adam', loss='binary_crossentropy')
 
     return encoder, decoder, auto
