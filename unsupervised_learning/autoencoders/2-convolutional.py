@@ -1,19 +1,17 @@
 #!/usr/bin/env python3
-"""Module for creating a convolutional autoencoder model using TensorFlow/Keras"""
+"""Module for creating a convolutional autoencoder using TF/Keras"""
 import tensorflow.keras as keras
 
 
 def autoencoder(input_dims, filters, latent_dims):
     """
     Creates a convolutional autoencoder
-
     input_dims: tuple of integers containing the dimensions of the
         model input
     filters: list containing the number of filters for each
         convolutional layer in the encoder, respectively
     latent_dims: tuple of integers containing the dimensions of the
         latent space representation
-
     Returns: encoder, decoder, auto
         encoder is the encoder model
         decoder is the decoder model
@@ -35,7 +33,6 @@ def autoencoder(input_dims, filters, latent_dims):
     x = latent_input
     reversed_filters = list(reversed(filters))
     num_layers = len(reversed_filters)
-
     for i, f in enumerate(reversed_filters):
         if i < num_layers - 1:
             padding = 'same'
@@ -45,12 +42,10 @@ def autoencoder(input_dims, filters, latent_dims):
             f, (3, 3), activation='relu', padding=padding
         )(x)
         x = keras.layers.UpSampling2D((2, 2))(x)
-
     channels = input_dims[-1]
     output_img = keras.layers.Conv2D(
         channels, (3, 3), activation='sigmoid', padding='same'
     )(x)
-
     decoder = keras.Model(latent_input, output_img, name='decoder')
 
     # --- Full Autoencoder ---
