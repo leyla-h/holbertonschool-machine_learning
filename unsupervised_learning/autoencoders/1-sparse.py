@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Module for creating a sparse autoencoder model using TensorFlow/Keras."""
-
 import tensorflow.keras as keras
 
 
@@ -13,7 +12,7 @@ def autoencoder(input_dims, hidden_layers, latent_dims, lambtha):
     x = input_img
     for units in hidden_layers:
         x = keras.layers.Dense(units, activation='relu')(x)
-    
+
     # Apply L1 regularization to the latent layer for sparsity
     latent = keras.layers.Dense(
         latent_dims,
@@ -33,7 +32,6 @@ def autoencoder(input_dims, hidden_layers, latent_dims, lambtha):
     # --- Full Autoencoder ---
     auto_output = decoder(encoder(input_img))
     auto = keras.Model(input_img, auto_output, name='autoencoder')
-
     auto.compile(optimizer='adam', loss='binary_crossentropy')
 
     return encoder, decoder, auto
